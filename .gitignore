@@ -1,0 +1,28 @@
+# Configurações locais e credenciais
+.env
+.env.*
+!.env.example
+**/.local/
+**/src/main/resources/application.properties
+
+# Dependências e arquivos gerados
+**/node_modules/
+**/.next/
+**/target/
+**/out/
+**/coverage/
+**/*.tsbuildinfo
+**/uploads/
+*.log
+
+# Cópias antigas de entrega
+/entrega-jwt/
+/entrega-jwt.zip
+
+# Arquivos do ambiente e anotações locais
+/.agents/
+/.codex/
+/.aws/
+/.vscode/
+/CONTEXTO_PROJETO.md
+.DS_Store

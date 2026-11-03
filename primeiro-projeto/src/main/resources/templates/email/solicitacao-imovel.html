@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informações sobre imóvel</title>
+</head>
+<body style="margin:0; padding:24px; background:#f3f5f4; color:#26332e; font-family:Arial,sans-serif;">
+<main style="max-width:700px; margin:auto; padding:28px; background:#fff; border-radius:10px;">
+    <h1 style="color:#185b43;">Olá, <span th:text="${clienteNome}">Cliente</span>!</h1>
+    <p>Obrigado pelo seu interesse. Recebemos sua solicitação de informações sobre o imóvel abaixo.</p>
+    <p th:text="${mensagemImobiliaria}">Mensagem da imobiliária</p>
+
+    <h2 style="color:#185b43;">Dados do imóvel</h2>
+    <table style="width:100%; border-collapse:collapse;">
+        <tbody>
+        <tr><th style="padding:8px; text-align:left;">Código</th><td style="padding:8px;" th:text="${imovelId}">ID</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Título</th><td style="padding:8px;" th:text="${titulo}">Título</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Descrição</th><td style="padding:8px;" th:text="${descricao}">Descrição</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Finalidade</th><td style="padding:8px;" th:text="${finalidade}">Finalidade</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Status</th><td style="padding:8px;" th:text="${status}">Status</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Preço de venda</th><td style="padding:8px;" th:text="${precoVenda}">Preço</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Preço de aluguel</th><td style="padding:8px;" th:text="${precoAluguel}">Preço</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Endereço</th><td style="padding:8px;" th:text="${endereco}">Endereço</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Número</th><td style="padding:8px;" th:text="${numero}">Número</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Complemento</th><td style="padding:8px;" th:text="${complemento}">Complemento</td></tr>
+        <tr><th style="padding:8px; text-align:left;">CEP</th><td style="padding:8px;" th:text="${cep}">CEP</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Dormitórios</th><td style="padding:8px;" th:text="${dormitorios}">Dormitórios</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Banheiros</th><td style="padding:8px;" th:text="${banheiros}">Banheiros</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Garagem</th><td style="padding:8px;" th:text="${garagem}">Garagem</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Área total</th><td style="padding:8px;" th:text="${areaTotal}">Área total</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Área construída</th><td style="padding:8px;" th:text="${areaConstruida}">Área construída</td></tr>
+        <tr><th style="padding:8px; text-align:left;">Características</th><td style="padding:8px; white-space:pre-line;" th:text="${caracteristicas}">Características</td></tr>
+        </tbody>
+    </table>
+
+    <h2 style="color:#185b43;">Sua solicitação</h2>
+    <p style="white-space:pre-line;" th:text="${mensagemCliente}">Mensagem do cliente</p>
+    <p><strong>Telefone:</strong> <span th:text="${clienteTelefone}">Telefone</span></p>
+    <p><strong>Email:</strong> <span th:text="${clienteEmail}">Email</span></p>
+
+    <hr style="margin:24px 0; border:0; border-top:1px solid #dce3df;">
+    <p style="color:#60736a; font-size:13px;">Este email foi enviado porque você solicitou mais informações sobre este imóvel.</p>
+</main>
+</body>
+</html>

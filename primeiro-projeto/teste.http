@@ -1,0 +1,161 @@
+# Use Send Request acima de cada chamada (extensão REST Client do VS Code).
+# Execute 01 e 02 primeiro; os tokens são preenchidos automaticamente.
+# 01–20: verificações sem alteração dos registros existentes e sem envio de email.
+# 21–26: CRUD opcional, usando SOMENTE o imóvel temporário criado em 21.
+# Tokens expiram em uma hora: execute os logins novamente quando necessário.
+@baseUrl = http://localhost:8080
+@adminToken = {{loginAdmin.response.body.$.token}}
+@userToken = {{loginUser.response.body.$.token}}
+@imovelId = 1
+@idInexistente = 2147483647
+
+### 01 — Login ADMIN → 200, token e tipo Bearer
+# @name loginAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"login": "admin", "senha": "1234"}
+
+### 02 — Login USER → 200, token e tipo Bearer
+# @name loginUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"login": "usuario", "senha": "1234"}
+
+### 03 — Senha incorreta → 401
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"login": "admin", "senha": "errada"}
+
+### 04 — Vitrine pública → 200 e lista de imóveis
+GET {{baseUrl}}/imoveis
+
+### 05 — Detalhe público do imóvel existente → 200
+GET {{baseUrl}}/imoveis/{{imovelId}}
+
+### 06 — Imóvel inexistente → 404
+GET {{baseUrl}}/imoveis/{{idInexistente}}
+
+### 07 — Usuários sem login → 401
+GET {{baseUrl}}/users
+
+### 08 — Usuários com USER → 403
+GET {{baseUrl}}/users
+Authorization: Bearer {{userToken}}
+
+### 09 — Usuários com ADMIN → 200
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+
+### 10 — Bairros com ADMIN → 200
+GET {{baseUrl}}/bairros
+Authorization: Bearer {{adminToken}}
+
+### 11 — Tipos com ADMIN → 200
+GET {{baseUrl}}/tipos-imovel
+Authorization: Bearer {{adminToken}}
+
+### 12 — Página de bairros → 200, content e totalPages
+GET {{baseUrl}}/bairros/bairros-page?page=0&size=5&sort=nome,asc
+Authorization: Bearer {{adminToken}}
+
+### 13 — Página de tipos → 200, content e totalPages
+GET {{baseUrl}}/tipos-imovel/tipos-imovel-page?page=0&size=5&sort=nome,asc
+Authorization: Bearer {{adminToken}}
+
+### 14 — Cadastro sem login → 401; não deve criar registro
+POST {{baseUrl}}/imoveis
+Content-Type: application/json
+
+{}
+
+### 15 — Cadastro com USER → 403; não deve criar registro
+POST {{baseUrl}}/imoveis
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### 16 — Status sem login → 401; não deve alterar registro
+PATCH {{baseUrl}}/imoveis/{{imovelId}}/status
+Content-Type: application/json
+
+{"status": "DISPONIVEL"}
+
+### 17 — Status vazio com USER → 400; não deve alterar registro
+PATCH {{baseUrl}}/imoveis/{{imovelId}}/status
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{"status": ""}
+
+### 18 — Status de imóvel inexistente com USER → 404
+PATCH {{baseUrl}}/imoveis/{{idInexistente}}/status
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{"status": "DISPONIVEL"}
+
+### 19 — Solicitação inválida → 400; não envia email
+POST {{baseUrl}}/imoveis/sabermais/{{imovelId}}
+Content-Type: application/json
+
+{}
+
+### 20 — Token inválido → 401
+GET {{baseUrl}}/users
+Authorization: Bearer invalido
+
+# OPCIONAL: os próximos testes alteram o banco. Execute 21–26 na ordem.
+# A URL do registro temporário é obtida do header Location da resposta 21.
+# Não substitua essa URL pelo ID de um imóvel real.
+
+### 21 — Criar imóvel temporário com ADMIN → 201 e header Location
+# @name criarImovelTeste
+POST {{baseUrl}}/imoveis
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "titulo": "TESTE HTTP - imóvel temporário",
+  "descricao": "Registro temporário para validar o CRUD; excluir no passo 25.",
+  "finalidade": "VENDA",
+  "status": "DISPONIVEL",
+  "precoVenda": 250000,
+  "dormitorios": 2,
+  "banheiros": 1,
+  "garagem": 1,
+  "areaTotal": 100,
+  "areaConstruida": 70,
+  "destaque": false
+}
+
+### 22 — Consultar o imóvel temporário → 200
+GET {{criarImovelTeste.response.headers.Location}}
+
+### 23 — USER altera somente status do temporário → 200 e RESERVADO
+PATCH {{criarImovelTeste.response.headers.Location}}/status
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{"status": "RESERVADO"}
+
+### 24 — ADMIN altera somente status do temporário → 200 e DISPONIVEL
+PATCH {{criarImovelTeste.response.headers.Location}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{"status": "DISPONIVEL"}
+
+### 25 — Excluir SOMENTE o imóvel temporário → 204
+DELETE {{criarImovelTeste.response.headers.Location}}
+Authorization: Bearer {{adminToken}}
+
+### 26 — Confirmar remoção do temporário → 404
+GET {{criarImovelTeste.response.headers.Location}}
+
+# Fotos e envio real de email ficam para uma etapa própria:
+# upload exige arquivo existente e imóvel associado; email exige SMTP válido.
+# Não executar envio de email automaticamente durante testes de segurança.
