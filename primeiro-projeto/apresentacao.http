@@ -1,0 +1,31 @@
+# APRESENTAÇÃO: execute 01 → 05 clicando em Send Request.
+# Esperado: 200 → 200 → 401 → 403 → 200.
+# Não altera dados e não envia email.
+@baseUrl = http://localhost:8080
+@adminToken = {{demoAdmin.response.body.$.token}}
+@userToken = {{demoUser.response.body.$.token}}
+
+### 01 — Login ADMIN: 200 e token
+# @name demoAdmin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"login": "admin", "senha": "1234"}
+
+### 02 — Login USER: 200 e token
+# @name demoUser
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{"login": "usuario", "senha": "1234"}
+
+### 03 — Usuários sem token: 401 (autenticação necessária)
+GET {{baseUrl}}/users
+
+### 04 — Usuários com USER: 403 (acesso negado)
+GET {{baseUrl}}/users
+Authorization: Bearer {{userToken}}
+
+### 05 — Usuários com ADMIN: 200 e lista de usuários
+GET {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
