@@ -1,29 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { AuthProvider } from "@/app/context/AuthContext";
+import Header from "@/app/components/Header";
 
 export const metadata: Metadata = {
   title: "Imobiliária | Imóveis disponíveis",
   description: "Encontre imóveis para comprar ou alugar.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="pt-BR" className="h-full antialiased">
+      <body className="min-h-full flex flex-col">
+        <AuthProvider>
+          <Header />
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   );
 }

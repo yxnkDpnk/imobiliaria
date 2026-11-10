@@ -35,6 +35,7 @@ public class JwtService {
         return Jwts.builder()
             .subject(login)
             .claim("role", perfil)
+            .claim("tipo", perfil)
             .issuedAt(agora)
             .expiration(expiracao)
             .signWith(chave, Jwts.SIG.HS256)

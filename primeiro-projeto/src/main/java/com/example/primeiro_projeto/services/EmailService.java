@@ -10,6 +10,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -19,6 +20,9 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+
+    @Value("${app.imobiliaria-email:onboarding@resend.dev}")
+    private String emailImobiliaria;
 
     public EmailService(
             JavaMailSender mailSender,
@@ -66,5 +70,15 @@ public class EmailService {
         helper.setText(html, true);
 
         mailSender.send(mime);
+    }
+
+    public void enviarInteresse(String emailCliente, String assunto, String corpo) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom("onboarding@resend.dev");
+        msg.setReplyTo(emailCliente);
+        msg.setTo(emailImobiliaria);
+        msg.setSubject(assunto);
+        msg.setText(corpo);
+        mailSender.send(msg);
     }
 }

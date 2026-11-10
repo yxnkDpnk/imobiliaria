@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -40,8 +42,8 @@ public class BairroController {
     }
 
     @PostMapping
-    public BairroModel insert(@RequestBody BairroModel model){
-        return bairroService.insert(model);
+    public ResponseEntity<BairroModel> insert(@RequestBody BairroModel model){
+        return ResponseEntity.status(HttpStatus.CREATED).body(bairroService.insert(model));
     }
 
     @PutMapping

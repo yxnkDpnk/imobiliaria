@@ -26,11 +26,11 @@ CREATE TABLE `bairros` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nome` varchar(255) NOT NULL,
   `cidade` varchar(255) NOT NULL,
-  `estado` varchar(2) NOT NULL,
+  `estado` varchar(2) DEFAULT NULL,
   `cep_inicial` varchar(255) NOT NULL,
   `cep_final` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -159,8 +159,12 @@ DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE `usuarios` (
   `id` int NOT NULL AUTO_INCREMENT,
   `nome` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  `email` varchar(255) DEFAULT NULL,
+  `senha` varchar(255) DEFAULT NULL,
+  `tipo` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `UKkfsp0s1tflm1cwlj8idhqsad0` (`email`)
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,7 +173,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'Administrador'),(2,'Maria Silva'),(3,'João Souza');
+INSERT INTO `usuarios` VALUES (1,'Administrador','admin@imobiliaria.com','$2a$10$/TcbMx5MdPcJy7.qqvDyIuIGfy2HR8LTRi33VdWNQqi2WT6UmiYma','ADMIN'),(2,'Maria Silva','cliente@imobiliaria.com','$2a$10$wqPxfMVJr0lpqqSY2KtJ6Oz9JgIaHU2ntbXFaO.JIwfrEcsKuXUd2','USER'),(3,'João Souza','usuario3@imobiliaria.com','$2a$10$mAehenbY/v6mV0cCKztEUuLFszVLfyJVksidACOm5Oly7Q0FR6hJi','USER');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -182,4 +186,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-03 19:56:45
+-- Dump completed on 2026-11-10 19:55:19

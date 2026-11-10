@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-labelledby="title desc">
+  <title id="title">Ilustração de imóvel</title>
+  <desc id="desc">Casa clara com telhado verde em uma paisagem suave</desc>
+  <rect width="800" height="500" fill="#e7efe9"/>
+  <circle cx="690" cy="90" r="48" fill="#f1cf76"/>
+  <path d="M0 380 Q180 315 370 382 T800 350 V500 H0Z" fill="#b9d0c0"/>
+  <rect x="218" y="210" width="360" height="210" rx="8" fill="#fffdf7"/>
+  <path d="M170 230 390 92l238 138Z" fill="#1f5b49"/>
+  <rect x="355" y="292" width="92" height="128" rx="4" fill="#b9875b"/>
+  <rect x="250" y="275" width="70" height="72" rx="4" fill="#a8d4db"/>
+  <rect x="482" y="275" width="70" height="72" rx="4" fill="#a8d4db"/>
+  <path d="M75 415h650" stroke="#769783" stroke-width="10" stroke-linecap="round"/>
+</svg>

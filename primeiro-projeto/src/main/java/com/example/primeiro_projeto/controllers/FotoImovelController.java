@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -18,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.primeiro_projeto.models.FotoImovelModel;
 import com.example.primeiro_projeto.services.FotoImovelService;
+import com.example.primeiro_projeto.repositories.FotoImovelRepository;
+import java.util.List;
 
 @RestController
 @RequestMapping("/fotos")
@@ -26,9 +29,27 @@ public class FotoImovelController {
     private static final Logger logger = LoggerFactory.getLogger(FotoImovelController.class);
 
     private final FotoImovelService fotoImovelService;
+    private final FotoImovelRepository fotoImovelRepository;
 
-    public FotoImovelController(FotoImovelService fotoImovelService) {
+    public FotoImovelController(FotoImovelService fotoImovelService,
+            FotoImovelRepository fotoImovelRepository) {
         this.fotoImovelService = fotoImovelService;
+        this.fotoImovelRepository = fotoImovelRepository;
+    }
+
+    public record FotoPublica(Integer id, String nomeArquivo, Boolean capa,
+            Integer ordem, String url) {}
+
+    @GetMapping("/imovel/{imovelId}")
+    public List<FotoPublica> listar(@PathVariable Integer imovelId) {
+        return fotoImovelRepository.findByImovel_Id(imovelId).stream()
+                .map(foto -> new FotoPublica(foto.getId(), foto.getNomeArquivo(),
+                        foto.getCapa(), foto.getOrdem(),
+                        "/fotos/arquivo/" + imovelId + "/" + foto.getNomeArquivo()))
+                .sorted((a, b) -> Integer.compare(
+                        a.ordem() == null ? Integer.MAX_VALUE : a.ordem(),
+                        b.ordem() == null ? Integer.MAX_VALUE : b.ordem()))
+                .toList();
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

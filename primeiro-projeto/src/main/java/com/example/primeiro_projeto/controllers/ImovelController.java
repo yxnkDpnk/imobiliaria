@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.mail.MessagingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,46 +99,31 @@ public class ImovelController {
         }
 
        
-        Map<String, Object> dadosEmail = new HashMap<>();
-        dadosEmail.put("clienteNome", solicitacao.nome());
-        dadosEmail.put("clienteTelefone", solicitacao.telefone());
-        dadosEmail.put("clienteEmail", solicitacao.email());
-        dadosEmail.put("mensagemCliente", solicitacao.mensagem());
-        dadosEmail.put("mensagemImobiliaria",
-                "Obrigado pelo seu interesse. Nossa equipe está à disposição para ajudar e entrará em contato em breve.");
-        dadosEmail.put("imovelId", imovel.getId());
-        dadosEmail.put("titulo", valorOuPadrao(imovel.getTitulo()));
-        dadosEmail.put("descricao", valorOuPadrao(imovel.getDescricao()));
-        dadosEmail.put("finalidade", valorOuPadrao(imovel.getFinalidade()));
-        dadosEmail.put("status", valorOuPadrao(imovel.getStatus()));
-        dadosEmail.put("precoVenda", valorOuPadrao(imovel.getPrecoVenda()));
-        dadosEmail.put("precoAluguel", valorOuPadrao(imovel.getPrecoAluguel()));
-        dadosEmail.put("dormitorios", valorOuPadrao(imovel.getDormitorios()));
-        dadosEmail.put("banheiros", valorOuPadrao(imovel.getBanheiros()));
-        dadosEmail.put("garagem", valorOuPadrao(imovel.getGaragem()));
-        dadosEmail.put("areaTotal", valorOuPadrao(imovel.getAreaTotal()));
-        dadosEmail.put("areaConstruida", valorOuPadrao(imovel.getAreaConstruida()));
-        dadosEmail.put("endereco", valorOuPadrao(imovel.getEndereco()));
-        dadosEmail.put("numero", valorOuPadrao(imovel.getNumero()));
-        dadosEmail.put("complemento", valorOuPadrao(imovel.getComplemento()));
-        dadosEmail.put("cep", valorOuPadrao(imovel.getCep()));
-        dadosEmail.put("caracteristicas", valorOuPadrao(imovel.getCaracteristicas()));
-
         try {
-           
-            emailService.enviarEmailComTemplate(
-                    solicitacao.email(),
-                    "Informações sobre o imóvel #" + imovel.getId(),
-                    "email/solicitacao-imovel",
-                    dadosEmail);
+            String tipo = imovel.getTipoImovel() == null
+                    ? "Não informado" : imovel.getTipoImovel().getNome();
+            String bairro = imovel.getBairro() == null
+                    ? "Não informado" : imovel.getBairro().getNome();
+            Object valor = imovel.getPrecoVenda() != null
+                    ? imovel.getPrecoVenda() : imovel.getPrecoAluguel();
+            String assunto = "Interesse no imóvel #" + imovel.getId() + " - " + tipo;
+            String corpo = "Cliente: " + solicitacao.nome()
+                    + "\nEmail: " + solicitacao.email()
+                    + "\nTelefone: " + solicitacao.telefone()
+                    + "\n\nImóvel: #" + imovel.getId()
+                    + "\nTipo: " + tipo
+                    + "\nBairro: " + bairro
+                    + "\nValor: " + valorOuPadrao(valor)
+                    + "\n\nMensagem:\n" + solicitacao.mensagem();
 
-            return ResponseEntity.ok("Email com as informações do imóvel enviado.");
-        } catch (MessagingException | MailException e) {
+            emailService.enviarInteresse(solicitacao.email(), assunto, corpo);
+            return ResponseEntity.ok("Interesse enviado para a imobiliária.");
+        } catch (MailException e) {
             
             logger.error("Falha ao enviar email de informações do imóvel {} para {}",
                 id, solicitacao.email(), e);
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                    .body("Não foi possível enviar o email neste momento.");
+                    .body("Não foi possível enviar o interesse neste momento.");
         }
     }
 

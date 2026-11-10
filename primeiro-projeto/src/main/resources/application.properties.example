@@ -13,6 +13,7 @@ spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true
 
 
 app.upload-dir=./uploads
+app.imobiliaria-email=${IMOBILIARIA_EMAIL:seu-email@exemplo.com}
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 spring.servlet.multipart.enabled=true

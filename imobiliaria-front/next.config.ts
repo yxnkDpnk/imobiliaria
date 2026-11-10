@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Proxy local: o navegador chama o Next, que consulta a API Spring.
   async rewrites() {
-    return [{ source: "/api/imoveis", destination: "http://127.0.0.1:8080/imoveis" }];
+    return [{ source: "/api/:path*", destination: "http://127.0.0.1:8080/:path*" }];
   },
   experimental: {
     agentFeedback: true,

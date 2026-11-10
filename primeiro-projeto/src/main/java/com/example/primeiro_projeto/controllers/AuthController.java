@@ -6,54 +6,54 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.primeiro_projeto.security.JwtService;
+import com.example.primeiro_projeto.models.UserModel;
+import com.example.primeiro_projeto.services.UserService;
 
 @RestController
-@RequestMapping("/auth")
 public class AuthController {
 
     private final JwtService jwtService;
+    private final UserService userService;
 
     // Spring fornece automaticamente o JwtService
-    public AuthController(JwtService jwtService) {
+    public AuthController(JwtService jwtService, UserService userService) {
         this.jwtService = jwtService;
+        this.userService = userService;
     }
 
-    public record LoginRequest(String login, String senha) {}
+    public record LoginRequest(String email, String login, String senha) {}
 
-    @PostMapping("/login")
+    @PostMapping({"/public/login", "/auth/login"})
     public ResponseEntity<?> login(@RequestBody LoginRequest dados) {
 
-        if (dados == null || dados.login() == null || dados.senha() == null) {
+        if (dados == null || dados.senha() == null || dados.senha().isBlank()) {
             return ResponseEntity.status(401)
-                .body(Map.of("erro", "Login ou senha incorretos"));
+                .body(Map.of("erro", "Email ou senha incorretos"));
         }
 
-        String perfil;
-
-        if ("admin".equals(dados.login()) &&
-            "1234".equals(dados.senha())) {
-
-            perfil = "ADMIN";
-
-        } else if ("usuario".equals(dados.login()) &&
-                   "1234".equals(dados.senha())) {
-
-            perfil = "USER";
-
-        } else {
+        String identificador = dados.email() != null ? dados.email() : dados.login();
+        if (identificador == null || identificador.isBlank()) {
             return ResponseEntity.status(401)
-                .body(Map.of("erro", "Login ou senha incorretos"));
+                    .body(Map.of("erro", "Email ou senha incorretos"));
         }
 
-        // Credenciais corretas: gerar o JWT
-        String token = jwtService.gerarToken(
-            dados.login(),
-            perfil
-        );
+        if ("admin".equalsIgnoreCase(identificador)) identificador = "admin@imobiliaria.com";
+        if ("usuario".equalsIgnoreCase(identificador)) identificador = "cliente@imobiliaria.com";
+
+        UserModel usuario = userService.autenticar(identificador.trim(), dados.senha())
+                .orElse(null);
+        if (usuario == null) {
+            return ResponseEntity.status(401)
+                    .body(Map.of("erro", "Email ou senha incorretos"));
+        }
+
+        String token = jwtService.gerarToken(usuario.getEmail(), usuario.getTipo());
 
         return ResponseEntity.ok(Map.of(
             "token", token,
-            "tipo", "Bearer"
+            "tipo", usuario.getTipo(),
+            "nome", usuario.getNome(),
+            "usuarioId", usuario.getId()
         ));
     }
 }

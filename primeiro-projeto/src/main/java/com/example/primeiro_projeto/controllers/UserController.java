@@ -23,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 //cracha de garçom
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 //import da injeção de dependencias (O cabo universal conector de classes)
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +48,12 @@ public class UserController{
 
     //Enviou post nesse RequestMapping? Então vamos salvar um usuário novo
     @PostMapping
-    public UserModel createUser(@RequestBody UserModel user){
-        return userService.save(user);
+    public ResponseEntity<UserModel> createUser(@RequestBody UserModel user){
+        UserModel salvo = userService.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .location(ServletUriComponentsBuilder.fromCurrentRequest()
+                        .path("/{id}").buildAndExpand(salvo.getId()).toUri())
+                .body(salvo);
     }
 
     @PutMapping("/{id}")

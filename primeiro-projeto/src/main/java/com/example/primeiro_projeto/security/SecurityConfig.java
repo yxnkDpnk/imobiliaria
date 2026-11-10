@@ -6,6 +6,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 public class SecurityConfig {
@@ -25,8 +27,9 @@ public class SecurityConfig {
                 .accessDeniedHandler(restAccessDeniedHandler()))
             .authorizeHttpRequests(auth -> auth
                 // AULA-JWT: O login e as consultas públicas não precisam de token.
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/login").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.POST, "/auth/login", "/public/login").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/imoveis", "/imoveis/{id}").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/bairros", "/tipos-imovel", "/fotos/imovel/**", "/fotos/arquivo/**").permitAll()
                 // AULA-JWT: Visitantes podem pedir informações sem ter uma conta na imobiliária.
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/imoveis/sabermais/{id}").permitAll()
                 // AULA-JWT: Alterar somente o status exige login, mas aceita ADMIN e USER.
@@ -43,6 +46,11 @@ public class SecurityConfig {
             .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 
     private org.springframework.security.web.AuthenticationEntryPoint restAuthenticationEntryPoint() {

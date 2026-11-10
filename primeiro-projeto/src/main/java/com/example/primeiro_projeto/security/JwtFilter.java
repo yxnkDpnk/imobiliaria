@@ -56,7 +56,8 @@ public class JwtFilter extends OncePerRequestFilter {
 			// AULA-JWT: Só usamos os dados do usuário depois de validar a assinatura e a expiração.
 			claims = jwtService.validarToken(token);
 			login = claims.getSubject();
-			perfil = claims.get("role", String.class);
+			perfil = claims.get("tipo", String.class);
+			if (perfil == null) perfil = claims.get("role", String.class);
 		} catch (JwtException | IllegalArgumentException e) {
 			responderNaoAutorizado(response);
 			return;

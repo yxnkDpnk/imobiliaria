@@ -1,0 +1,98 @@
+# AULA 2 — execute 01 a 09 na ordem.
+# Os tokens e IDs são reaproveitados automaticamente pelo REST Client.
+@baseUrl = http://localhost:8080
+@adminToken = {{loginAdminAula2.response.body.$.token}}
+@clienteToken = {{loginClienteCriado.response.body.$.token}}
+
+### 01 — Vitrine pública: esperado 200
+GET {{baseUrl}}/imoveis
+
+### 02 — Login admin: esperado 200, token e tipo ADMIN
+# @name loginAdminAula2
+POST {{baseUrl}}/public/login
+Content-Type: application/json
+
+{
+  "email": "admin@imobiliaria.com",
+  "senha": "1234"
+}
+
+### 03 — Copie o token da resposta 02 em https://jwt.io
+# Confira sub, tipo ADMIN, iat e exp. Não altere o token usado nos próximos testes.
+
+### 04 — Criar bairro sem token: esperado 401
+POST {{baseUrl}}/bairros
+Content-Type: application/json
+
+{
+  "nome": "Sem autorização {{$guid}}",
+  "cidade": "Porto Alegre",
+  "estado": "RS"
+}
+
+### 05 — Admin cria bairro: esperado 201
+# @name criarBairroAula2
+POST {{baseUrl}}/bairros
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nome": "Bairro Aula 2 {{$guid}}",
+  "cidade": "Porto Alegre",
+  "estado": "RS",
+  "cepInicial": "90000-000",
+  "cepFinal": "90099-999"
+}
+
+### 06 — Admin cria cliente: esperado 201 e tipo USER
+# @name criarClienteAula2
+POST {{baseUrl}}/users
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "nome": "Cliente Aula 2",
+  "email": "cliente.aula2.{{$timestamp}}@email.com",
+  "senha": "1234",
+  "tipo": "USER"
+}
+
+### 07 — Login do cliente criado: esperado 200, token e tipo USER
+# @name loginClienteCriado
+POST {{baseUrl}}/public/login
+Content-Type: application/json
+
+{
+  "email": "{{criarClienteAula2.response.body.$.email}}",
+  "senha": "1234"
+}
+
+### 08 — Cliente tenta criar bairro: esperado 403
+POST {{baseUrl}}/bairros
+Authorization: Bearer {{clienteToken}}
+Content-Type: application/json
+
+{
+  "nome": "Cliente sem permissão {{$guid}}",
+  "cidade": "Porto Alegre",
+  "estado": "RS"
+}
+
+### 09 — Token adulterado: esperado 401
+POST {{baseUrl}}/bairros
+Authorization: Bearer {{adminToken}}x
+Content-Type: application/json
+
+{
+  "nome": "Token inválido {{$guid}}",
+  "cidade": "Porto Alegre",
+  "estado": "RS"
+}
+
+### 10 — LIMPEZA opcional: excluir cliente criado, esperado 204
+DELETE {{baseUrl}}/users/{{criarClienteAula2.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
+
+### 11 — LIMPEZA opcional: excluir bairro criado
+DELETE {{baseUrl}}/bairros/{{criarBairroAula2.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
