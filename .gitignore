@@ -25,4 +25,5 @@
 /.aws/
 /.vscode/
 /CONTEXTO_PROJETO.md
+**/AGENTS.md
 .DS_Store
