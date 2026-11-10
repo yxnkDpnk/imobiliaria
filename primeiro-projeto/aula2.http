@@ -1,4 +1,27 @@
-# AULA 2 — execute 01 a 09 na ordem.
+# APRESENTAÇÃO RÁPIDA DO FRONTEND
+#
+# No VS Code, segure Ctrl e clique em um dos endereços abaixo para abrir no navegador.
+# Não use "Send Request" nesses links: isso exibiria apenas o HTML no REST Client.
+#
+# Vitrine pública: http://localhost:3000
+# Login:           http://localhost:3000/login
+# Detalhe:         http://localhost:3000/imoveis/1
+# Área do cliente: http://localhost:3000/cliente
+# Área do admin:   http://localhost:3000/admin
+#
+# Roteiro para mostrar ao professor:
+# 1. Abra a vitrine e mostre filtros, ordenação, paginação e detalhes do imóvel.
+# 2. Abra /admin sem login: o sistema deve redirecionar para /login.
+# 3. Entre como cliente: cliente@imobiliaria.com / 1234.
+# 4. Mostre a área do cliente e clique em Sair.
+# 5. Entre como admin: admin@imobiliaria.com / 1234.
+# 6. Mostre o painel do administrador e clique em Sair.
+#
+# Se os links não abrirem, inicie primeiro:
+# Backend:  cd primeiro-projeto && ./iniciar.sh
+# Frontend: cd imobiliaria-front && npm run dev
+#
+# TESTES DA API — execute 01 a 09 na ordem.
 # Os tokens e IDs são reaproveitados automaticamente pelo REST Client.
 @baseUrl = http://localhost:8080
 @adminToken = {{loginAdminAula2.response.body.$.token}}
@@ -17,8 +40,10 @@ Content-Type: application/json
   "senha": "1234"
 }
 
-### 03 — Copie o token da resposta 02 em https://jwt.io
-# Confira sub, tipo ADMIN, iat e exp. Não altere o token usado nos próximos testes.
+### 03 — Pegar o token da resposta 02 em https://jwt.io
+# Este item não tem "Send Request". Copie somente o token da resposta 02,
+# cole no campo Encoded do jwt.io e confira sub, tipo ADMIN, iat e exp.
+# Não altere o token usado nos próximos testes.
 
 ### 04 — Criar bairro sem token: esperado 401
 POST {{baseUrl}}/bairros
