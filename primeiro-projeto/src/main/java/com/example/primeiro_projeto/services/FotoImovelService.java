@@ -6,13 +6,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -34,42 +36,55 @@ public class FotoImovelService {
     private String uploadDir;
 
     public FotoImovelModel salvar(MultipartFile arquivo, Integer imovelId) {
-
-        // 1 -> procurar se existe algum imóvel para associar a foto
+        if (arquivo == null || arquivo.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione uma imagem PNG, JPEG ou GIF.");
+        }
         ImovelModel imovel = imovelRepository.findById(imovelId)
             .orElseThrow(() -> new ResponseStatusException(
                 HttpStatus.NOT_FOUND, "Imóvel não encontrado"));
 
         try {
-            // 2 -> criar diretório de uploads se não existir
-            Path pasta = Paths.get(uploadDir, String.valueOf(imovelId));
-
+            String formato;
+            try (ImageInputStream imagem = ImageIO.createImageInputStream(arquivo.getInputStream())) {
+                var leitores = ImageIO.getImageReaders(imagem);
+                if (!leitores.hasNext()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O arquivo não é uma imagem PNG, JPEG ou GIF válida.");
+                }
+                ImageReader leitor = leitores.next();
+                try {
+                    formato = leitor.getFormatName().toLowerCase(java.util.Locale.ROOT);
+                    if (!List.of("png", "jpeg", "jpg", "gif").contains(formato)) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use uma imagem PNG, JPEG ou GIF.");
+                    }
+                    leitor.setInput(imagem);
+                    if ((long) leitor.getWidth(0) * leitor.getHeight(0) > 40_000_000) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A imagem deve ter no máximo 40 megapixels.");
+                    }
+                    leitor.read(0);
+                } finally { leitor.dispose(); }
+            }
+            Path pasta = Paths.get(uploadDir, String.valueOf(imovelId)).toAbsolutePath().normalize();
             Files.createDirectories(pasta);
-
-            // 3 -> pegar o nome original do arquivo
-            String nomeOriginal = StringUtils.cleanPath(
-                    arquivo.getOriginalFilename()
-            );
-            String nomeFinal = UUID.randomUUID().toString() + "_" + nomeOriginal;
-            System.out.println("Arquivo: " + nomeOriginal);
-            System.out.println("Pasta: " + pasta);
+            String nomeFinal = UUID.randomUUID() + "." + formato;
             Path destino = pasta.resolve(nomeFinal);
-
             arquivo.transferTo(destino);
-
-            // 4 -> criar o modelo e salvar o arquivo na pasta
             FotoImovelModel model = new FotoImovelModel();
             model.setCaminho(nomeFinal);
             model.setNomeArquivo(nomeFinal);
             model.setImovel(imovel);
-            fotoImovelRepository.save(model);
-
-            return model;
+            List<FotoImovelModel> existentes = fotoImovelRepository.findByImovel_Id(imovelId);
+            model.setCapa(existentes.isEmpty());
+            model.setOrdem(existentes.size() + 1);
+            try {
+                return fotoImovelRepository.saveAndFlush(model);
+            } catch (RuntimeException e) {
+                Files.deleteIfExists(destino);
+                throw e;
+            }
             
         } catch (IOException e) {
-            throw new RuntimeException(
-                    "Erro ao salvar a foto do imóvel: " + e.getMessage()
-            );
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Não foi possível ler ou salvar a imagem. Use um arquivo PNG, JPEG ou GIF válido.", e);
         }
     }
 
@@ -81,6 +96,9 @@ public class FotoImovelService {
                         HttpStatus.NOT_FOUND, "Foto não encontrada"));
 
         if (dadosAtualizados.getOrdem() != null) {
+            if (dadosAtualizados.getOrdem() < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A ordem da foto não pode ser negativa.");
+            }
             foto.setOrdem(dadosAtualizados.getOrdem());
         }
 

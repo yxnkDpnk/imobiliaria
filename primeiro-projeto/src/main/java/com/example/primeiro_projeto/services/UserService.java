@@ -92,8 +92,8 @@ public class UserService {
 
     private String normalizarTipo(String tipo) {
         String normalizado = tipo.trim().toUpperCase();
-        if (!normalizado.equals("ADMIN") && !normalizado.equals("USER")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo deve ser ADMIN ou USER.");
+        if (!normalizado.equals("ADMIN") && !normalizado.equals("USER") && !normalizado.equals("CORRETOR")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo deve ser ADMIN, CORRETOR ou USER.");
         }
         return normalizado;
     }

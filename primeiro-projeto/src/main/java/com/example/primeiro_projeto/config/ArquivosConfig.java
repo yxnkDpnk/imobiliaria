@@ -16,6 +16,7 @@ public class ArquivosConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         String local = Paths.get(uploadDir).toAbsolutePath().normalize().toUri().toString();
+        if (!local.endsWith("/")) local += "/";
         registry.addResourceHandler("/fotos/arquivo/**").addResourceLocations(local);
     }
 }

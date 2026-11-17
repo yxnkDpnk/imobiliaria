@@ -1,7 +1,5 @@
 package com.example.primeiro_projeto.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.example.primeiro_projeto.models.FotoImovelModel;
 import com.example.primeiro_projeto.services.FotoImovelService;
@@ -25,8 +22,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/fotos")
 public class FotoImovelController {
-
-    private static final Logger logger = LoggerFactory.getLogger(FotoImovelController.class);
 
     private final FotoImovelService fotoImovelService;
     private final FotoImovelRepository fotoImovelRepository;
@@ -56,59 +51,26 @@ public class FotoImovelController {
     public ResponseEntity<FotoImovelModel> salvar(
             @RequestParam("arquivo") MultipartFile arquivo,
             @RequestParam("imovelId") Integer imovelId) {
-        try {
-            if(arquivo.isEmpty()) {
-                return ResponseEntity.badRequest().build();
-            }
-
-            FotoImovelModel fotoImovelModel = fotoImovelService.salvar(arquivo, imovelId);
-            return ResponseEntity.status(HttpStatus.CREATED).body(fotoImovelModel);
-        } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            logger.error("Erro inesperado ao salvar foto do imóvel {}", imovelId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        FotoImovelModel fotoImovelModel = fotoImovelService.salvar(arquivo, imovelId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(fotoImovelModel);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<FotoImovelModel> atualizar(
             @PathVariable Integer id,
             @RequestBody FotoImovelModel dadosAtualizados) {
-        try {
-            FotoImovelModel fotoAtualizada =
-                    fotoImovelService.atualizar(id, dadosAtualizados);
-            return ResponseEntity.ok(fotoAtualizada);
-        } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return ResponseEntity.ok(fotoImovelService.atualizar(id, dadosAtualizados));
     }
 
     @PutMapping("/{id}/capa")
     public ResponseEntity<FotoImovelModel> tornarCapa(@PathVariable Integer id) {
-        try {
-            FotoImovelModel fotoCapa = fotoImovelService.tornarCapa(id);
-            return ResponseEntity.ok(fotoCapa);
-        } catch (ResponseStatusException e) {
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return ResponseEntity.ok(fotoImovelService.tornarCapa(id));
     }
 
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> excluir(@PathVariable Integer id) {
-        try {
-            fotoImovelService.excluir(id);
-            return ResponseEntity.noContent().build();
-        } catch (ResponseStatusException e) {
-    
-            return ResponseEntity.status(e.getStatusCode()).build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        fotoImovelService.excluir(id);
+        return ResponseEntity.noContent().build();
     }
 }

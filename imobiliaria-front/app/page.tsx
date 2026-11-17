@@ -17,7 +17,7 @@ function normalizar(valor: string | null | undefined) {
 }
 
 function valorPrincipal(imovel: Imovel) {
-  return imovel.precoVenda ?? imovel.precoAluguel ?? 0;
+  return (imovel.precoVenda ?? 0) > 0 ? imovel.precoVenda! : imovel.precoAluguel ?? 0;
 }
 
 function valorDoFiltro(imovel: Imovel, finalidade: string) {
@@ -65,14 +65,14 @@ export default function Home() {
     return () => { ativo = false; };
   }, [tentativa]);
 
-  const bairros = useMemo(() => [...new Set(imoveis.map((i) => i.bairro?.nome).filter(Boolean) as string[])].sort(), [imoveis]);
+  const bairros = useMemo(() => [...new Map(imoveis.flatMap((i) => i.bairro ? [[i.bairro.id, i.bairro] as const] : [])).values()].sort((a, b) => a.nome.localeCompare(b.nome)), [imoveis]);
   const filtrados = useMemo(() => {
     const minimo = precoMin ? Number(precoMin) : 0;
     const maximo = precoMax ? Number(precoMax) : Number.POSITIVE_INFINITY;
     return imoveis
-      .filter((imovel) => !bairro || imovel.bairro?.nome === bairro)
-      .filter((imovel) => finalidade !== "VENDA" || imovel.precoVenda != null)
-      .filter((imovel) => finalidade !== "ALUGUEL" || imovel.precoAluguel != null)
+      .filter((imovel) => !bairro || String(imovel.bairro?.id) === bairro)
+      .filter((imovel) => finalidade !== "VENDA" || (imovel.precoVenda ?? 0) > 0)
+      .filter((imovel) => finalidade !== "ALUGUEL" || (imovel.precoAluguel ?? 0) > 0)
       .filter((imovel) => valorDoFiltro(imovel, finalidade) >= minimo && valorDoFiltro(imovel, finalidade) <= maximo)
       .sort((a, b) => ordem === "preco-desc"
         ? valorDoFiltro(b, finalidade) - valorDoFiltro(a, finalidade)
@@ -98,7 +98,7 @@ export default function Home() {
           <label className="text-sm font-semibold">Bairro
             <select value={bairro} onChange={(e) => { setBairro(e.target.value); setPagina(1); }} className="mt-2 w-full rounded-lg border border-stone-300 bg-white p-2.5 font-normal">
               <option value="">Todos</option>
-              {bairros.map((item) => <option key={item}>{item}</option>)}
+              {bairros.map((item) => <option key={item.id} value={item.id}>{item.nome} · {item.cidade ?? "Cidade não informada"}</option>)}
             </select>
           </label>
           <label className="text-sm font-semibold">Finalidade
@@ -144,8 +144,8 @@ export default function Home() {
                       <h2 className="mt-2 text-xl font-bold">{imovel.titulo ?? "Imóvel sem título"}</h2>
                       <p className="mt-1 text-sm text-stone-600">{imovel.bairro?.nome ?? "Bairro não informado"} · {imovel.bairro?.cidade ?? "Cidade não informada"}</p>
                       <div className="mt-5 space-y-1 border-t border-stone-100 pt-4">
-                        {imovel.precoVenda != null && <p><span className="text-sm text-stone-500">Venda </span><strong>{moeda(imovel.precoVenda)}</strong></p>}
-                        {imovel.precoAluguel != null && <p><span className="text-sm text-stone-500">Aluguel </span><strong>{moeda(imovel.precoAluguel)}/mês</strong></p>}
+                        {(imovel.precoVenda ?? 0) > 0 && <p><span className="text-sm text-stone-500">Venda </span><strong>{moeda(imovel.precoVenda!)}</strong></p>}
+                        {(imovel.precoAluguel ?? 0) > 0 && <p><span className="text-sm text-stone-500">Aluguel </span><strong>{moeda(imovel.precoAluguel!)}/mês</strong></p>}
                       </div>
                       <Link href={`/imoveis/${imovel.id}`} className="mt-5 block rounded-lg bg-emerald-900 px-4 py-2.5 text-center font-bold text-white hover:bg-emerald-800">Ver detalhes</Link>
                     </div>

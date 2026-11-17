@@ -1,0 +1,183 @@
+# AULA 3 — fluxo completo
+# Ctrl + clique abre o site no navegador:
+# Vitrine: http://localhost:3000
+# Login: http://localhost:3000/login
+# Cliente: http://localhost:3000/cliente
+# Corretor: http://localhost:3000/corretor
+# Administrador: http://localhost:3000/admin
+# Roteiro pela interface: APRESENTACAO_AULA3.md, na raiz do repositório.
+# Execute na ordem. Este arquivo cria um imóvel de demonstração próprio;
+# o imóvel original não é alterado. Os itens 409/403 são bloqueios esperados.
+
+@baseUrl = http://localhost:8080
+@admin = {{loginAdmin.response.body.$.token}}
+@cliente = {{loginCliente.response.body.$.token}}
+@corretor = {{loginCorretor.response.body.$.token}}
+@imovelId = {{consultarImovel.response.body.$.id}}
+@ofertaId = {{enviarOferta.response.body.$.id}}
+@contratoId = {{prepararContrato.response.body.$.id}}
+
+### 01 — Login administrador: 200
+# @name loginAdmin
+POST {{baseUrl}}/public/login
+Content-Type: application/json
+
+{"email":"admin@imobiliaria.com","senha":"1234"}
+
+### 02 — Login cliente: 200
+# @name loginCliente
+POST {{baseUrl}}/public/login
+Content-Type: application/json
+
+{"email":"cliente@imobiliaria.com","senha":"1234"}
+
+### 03 — Login corretor: 200 com tipo CORRETOR
+# @name loginCorretor
+POST {{baseUrl}}/public/login
+Content-Type: application/json
+
+{"email":"corretor@imobiliaria.com","senha":"1234"}
+
+### 04 — Bairros para o cadastro: 200
+# @name listarBairros
+GET {{baseUrl}}/bairros
+
+### 05 — Tipos para o cadastro: 200
+# @name listarTipos
+GET {{baseUrl}}/tipos-imovel
+
+### 06 — Admin cria imóvel para esta apresentação: 201 (Location)
+# @name criarImovel
+POST {{baseUrl}}/imoveis
+Authorization: Bearer {{admin}}
+Content-Type: application/json
+
+{
+  "titulo":"Imóvel de demonstração Aula 3 {{$timestamp}}",
+  "descricao":"Imóvel utilizado para apresentar o fluxo de oferta e contrato.",
+  "precoVenda":420000,
+  "precoAluguel":2200,
+  "finalidade":"VENDA E ALUGUEL",
+  "dormitorios":2,
+  "banheiros":1,
+  "garagem":1,
+  "endereco":"Rua da Demonstração",
+  "numero":"100",
+  "bairro":{"id":{{listarBairros.response.body.$[0].id}}},
+  "tipoImovel":{"id":{{listarTipos.response.body.$[0].id}}}
+}
+
+### 07 — Consulta pública do imóvel criado: 200 e status DISPONIVEL
+# @name consultarImovel
+GET {{criarImovel.response.headers.Location}}
+
+### 08 — Cliente adiciona aos favoritos: 201
+POST {{baseUrl}}/favoritos/{{imovelId}}
+Authorization: Bearer {{cliente}}
+
+### 09 — Favoritos do cliente: 200
+GET {{baseUrl}}/favoritos
+Authorization: Bearer {{cliente}}
+
+### 10 — Cliente envia oferta: 201 e PENDENTE
+# @name enviarOferta
+POST {{baseUrl}}/ofertas
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"imovelId":{{imovelId}},"tipo":"VENDA","valorProposto":400000,"mensagem":"Proposta de compra para a apresentação da Aula 3."}
+
+### 11 — Oferta pendente duplicada: 409 com mensagem de negócio
+POST {{baseUrl}}/ofertas
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"imovelId":{{imovelId}},"tipo":"VENDA","valorProposto":405000,"mensagem":"Esta segunda oferta deve ser bloqueada."}
+
+### 12 — Cliente não pode aceitar oferta: 403
+PATCH {{baseUrl}}/ofertas/{{ofertaId}}/aceitar
+Authorization: Bearer {{cliente}}
+
+### 13 — Corretor aceita oferta: 200 e ACEITA, imóvel RESERVADO
+PATCH {{baseUrl}}/ofertas/{{ofertaId}}/aceitar
+Authorization: Bearer {{corretor}}
+
+### 14 — Imóvel reservado não recebe novas ofertas: 409
+POST {{baseUrl}}/ofertas
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"imovelId":{{imovelId}},"tipo":"VENDA","valorProposto":410000,"mensagem":"O imóvel já está reservado."}
+
+### 15 — Corretor prepara contrato: 201 e EM_APROVACAO
+# @name prepararContrato
+POST {{baseUrl}}/contratos
+Authorization: Bearer {{corretor}}
+Content-Type: application/json
+
+{"ofertaId":{{ofertaId}},"observacoes":"Pagamento conforme valor da proposta aceita. Documento demonstrativo do projeto acadêmico."}
+
+### 16 — Assinar antes da aprovação: 409
+PATCH {{baseUrl}}/contratos/{{contratoId}}/assinar
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"nomeAssinatura":"Cliente da Demonstração","aceite":true}
+
+### 17 — Corretor não pode aprovar contrato: 403
+PATCH {{baseUrl}}/contratos/{{contratoId}}/aprovar
+Authorization: Bearer {{corretor}}
+
+### 18 — Admin baixa PDF: 200 application/pdf
+GET {{baseUrl}}/contratos/{{contratoId}}/pdf
+Authorization: Bearer {{admin}}
+
+### 19 — Admin aprova: 200, AGUARDANDO_ASSINATURA e dataAprovacao
+PATCH {{baseUrl}}/contratos/{{contratoId}}/aprovar
+Authorization: Bearer {{admin}}
+
+### 20 — Assinar antes do envio: 409
+PATCH {{baseUrl}}/contratos/{{contratoId}}/assinar
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"nomeAssinatura":"Cliente da Demonstração","aceite":true}
+
+### 21 — Admin envia ao cliente: 200, dataEnvio e notificacaoStatus
+# A notificação por email depende da configuração SMTP; o contrato já aparece no site.
+PATCH {{baseUrl}}/contratos/{{contratoId}}/enviar
+Authorization: Bearer {{admin}}
+
+### 22 — Cliente consulta seus contratos enviados: 200
+GET {{baseUrl}}/contratos
+Authorization: Bearer {{cliente}}
+
+### 23 — Assinatura sem aceite: 400
+PATCH {{baseUrl}}/contratos/{{contratoId}}/assinar
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"nomeAssinatura":"Cliente da Demonstração","aceite":false}
+
+### 24 — Cliente assina: 200 e ASSINADO, nome e data registrados
+PATCH {{baseUrl}}/contratos/{{contratoId}}/assinar
+Authorization: Bearer {{cliente}}
+Content-Type: application/json
+
+{"nomeAssinatura":"Cliente da Demonstração","aceite":true}
+
+### 25 — Imóvel agora VENDIDO: 200
+GET {{baseUrl}}/imoveis/{{imovelId}}
+
+### 26 — Painel com totais e dados para os três gráficos: 200
+GET {{baseUrl}}/painel
+Authorization: Bearer {{admin}}
+
+### 27 — Opcional: cancelar contrato para repetir o fluxo: 200
+# O contrato fica CANCELADO, a oferta CANCELADA e o imóvel volta a DISPONIVEL.
+PATCH {{baseUrl}}/contratos/{{contratoId}}/cancelar
+Authorization: Bearer {{admin}}
+
+### 28 — Opcional: remover favorito: 204
+DELETE {{baseUrl}}/favoritos/{{imovelId}}
+Authorization: Bearer {{cliente}}

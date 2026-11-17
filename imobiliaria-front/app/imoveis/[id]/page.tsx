@@ -6,6 +6,7 @@ import { FormEvent, Suspense, useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import { api, ApiError } from "@/app/lib/api";
 import type { Foto, Imovel } from "@/app/types";
+import NegociarImovel from "@/app/components/NegociarImovel";
 
 function moeda(valor: number | null) {
   return valor == null ? "Não informado" : valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -92,6 +93,7 @@ function DetalheImovel() {
           </div>
 
           <aside>
+            <NegociarImovel imovel={imovel} />
             <section className="rounded-2xl bg-emerald-950 p-6 text-white">
               {imovel.precoVenda != null && <p><span className="text-sm text-emerald-200">Venda</span><strong className="block text-2xl">{moeda(imovel.precoVenda)}</strong></p>}
               {imovel.precoAluguel != null && <p className="mt-4"><span className="text-sm text-emerald-200">Aluguel mensal</span><strong className="block text-2xl">{moeda(imovel.precoAluguel)}</strong></p>}

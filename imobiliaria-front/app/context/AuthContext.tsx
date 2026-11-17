@@ -2,7 +2,7 @@
 
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { limparSessao } from "@/app/lib/api";
+import { api, ApiError, limparSessao } from "@/app/lib/api";
 import type { Sessao } from "@/app/types";
 
 type AuthContextValue = {
@@ -30,31 +30,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    let ativo = true;
+    const controller = new AbortController();
     const sessaoExpirada = () => {
+      sessionStorage.setItem("imobiliaria_expirada", "1");
       setSessao(null);
       router.replace("/login?expirada=1");
     };
     window.addEventListener("imobiliaria:sessao-expirada", sessaoExpirada);
-    const temporizador = window.setTimeout(() => {
+    const temporizador = window.setTimeout(async () => {
       const salva = localStorage.getItem("imobiliaria_sessao");
       if (salva) {
         try {
           const lida = JSON.parse(salva) as Sessao;
-          if (!tokenExpirou(lida.token)) setSessao(lida);
-          else limparSessao();
-        } catch {
-          limparSessao();
+          if (!tokenExpirou(lida.token)) {
+            const atual = await api<Omit<Sessao, "token">>("/sessao", { signal: controller.signal });
+            if (ativo) setSessao({ ...atual, token: lida.token });
+          } else {
+            limparSessao();
+            sessionStorage.setItem("imobiliaria_expirada", "1");
+            router.replace("/login?expirada=1");
+          }
+        } catch (e) {
+          if (!ativo) return;
+          if (!(e instanceof ApiError) || e.status === 401) limparSessao();
         }
       }
-      setCarregando(false);
+      if (ativo) setCarregando(false);
     }, 0);
     return () => {
+      ativo = false;
+      controller.abort();
       window.clearTimeout(temporizador);
       window.removeEventListener("imobiliaria:sessao-expirada", sessaoExpirada);
     };
   }, [router]);
 
+  useEffect(() => {
+    if (!sessao) return;
+    const parte = sessao.token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const exp = (JSON.parse(atob(parte)) as { exp: number }).exp;
+    const timer = window.setTimeout(() => {
+      limparSessao();
+      sessionStorage.setItem("imobiliaria_expirada", "1");
+      setSessao(null);
+      router.replace("/login?expirada=1");
+    }, Math.max(0, exp * 1000 - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [sessao, router]);
+
   function entrar(novaSessao: Sessao) {
+    sessionStorage.removeItem("imobiliaria_expirada");
     localStorage.setItem("imobiliaria_sessao", JSON.stringify(novaSessao));
     document.cookie = `imobiliaria_token=${novaSessao.token}; path=/; max-age=3600; samesite=lax`;
     document.cookie = `imobiliaria_tipo=${novaSessao.tipo}; path=/; max-age=3600; samesite=lax`;
@@ -62,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   function sair() {
+    sessionStorage.removeItem("imobiliaria_expirada");
     limparSessao();
     setSessao(null);
     router.replace("/login");

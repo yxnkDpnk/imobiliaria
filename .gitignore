@@ -14,6 +14,7 @@
 **/*.tsbuildinfo
 **/uploads/
 *.log
+**/.attach_pid*
 
 # Cópias antigas de entrega
 /entrega-jwt/

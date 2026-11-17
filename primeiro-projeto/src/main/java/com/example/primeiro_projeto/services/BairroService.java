@@ -1,76 +1,72 @@
 package com.example.primeiro_projeto.services;
 
-//propriedade de lista do java
 import java.util.List;
-//nao sei
-import java.util.Optional;
+import java.util.Locale;
 
-//import do cabo universal spring
-import org.springframework.beans.factory.annotation.Autowired;
-//import do objeto Page qual acredito eu que deve agrupar uma unica pagina
 import org.springframework.data.domain.Page;
-//import do pageable que em tese deve ser um objetos lista com varias pages e interativo?
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-//cracha de chefe
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.primeiro_projeto.models.BairroModel;
 import com.example.primeiro_projeto.repositories.BairroRepository;
 
 @Service
-public class BairroService{
-    @Autowired
-    private BairroRepository repository;
+public class BairroService {
+    private final BairroRepository repository;
 
-    //metodo que retora uma lista com todos os bairros
-    public List<BairroModel> getAll(){
-        List<BairroModel> list = repository.findAll();
-        return list;
-
+    public BairroService(BairroRepository repository) {
+        this.repository = repository;
     }
 
-    //aqui indicamos que as paginas seram preenchidas de bairros e por isso retornara um pageable? nao entedi pois ainda não indetifiquei o que é um objeto pageable e muito menos page
-    public Page<BairroModel> getAll(Pageable pageable){
-        Page<BairroModel> list = repository.findAll(pageable);
-        return list;
+    public List<BairroModel> getAll() { return repository.findAll(); }
+    public Page<BairroModel> getAll(Pageable pageable) { return repository.findAll(pageable); }
+
+    public BairroModel find(Integer id) {
+        return repository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Bairro não encontrado."));
     }
 
-    //não sei oque significa optinonal aqui confusao total, e fiquei em duvida se pelo fato de ter <> significa que também é uma lista ou item com varias coisas
-    public BairroModel find(Integer id){
-        Optional<BairroModel> model = repository.findById(id);
-
-        //primeira vez que vejo essa sintaxe mas manda um valor presetado caso nao ache nada? ou nesse caso nao consiga montar o model referido?
-        return model.orElse(null);
-    }
-
-
-
-    public BairroModel insert(BairroModel model){
-    
-        if(repository.existsByNome(model.getNome())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro: Bairro já cadastrado no banco!");
-            
-        }
+    @Transactional
+    public BairroModel insert(BairroModel model) {
+        model.setId(null);
+        validar(model);
         return repository.save(model);
-
     }
 
-    public BairroModel update(BairroModel model){
-        try{
-            //se ele achar o bairro no banco atualizara os dados e todas colunas da tabela
-            if(find(model.getId()) != null){
-                return repository.save(model);
-            }
-            return null;
+    @Transactional
+    public BairroModel update(BairroModel model) {
+        if (model.getId() == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe o código do bairro.");
+        BairroModel atual = find(model.getId());
+        if (model.getNome() != null) atual.setNome(model.getNome());
+        if (model.getCidade() != null) atual.setCidade(model.getCidade());
+        if (model.getEstado() != null) atual.setEstado(model.getEstado());
+        if (model.getCepInicial() != null) atual.setCepInicial(model.getCepInicial());
+        if (model.getCepFinal() != null) atual.setCepFinal(model.getCepFinal());
+        validar(atual);
+        return repository.save(atual);
+    }
 
-        }catch(Exception e){
-            return null;
+    @Transactional
+    public void delete(Integer id) { repository.delete(find(id)); repository.flush(); }
+
+    private void validar(BairroModel model) {
+        if (model.getNome() == null || model.getNome().isBlank()
+                || model.getCidade() == null || model.getCidade().isBlank()
+                || model.getEstado() == null || !model.getEstado().trim().matches("[A-Za-z]{2}")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome, cidade e a UF com duas letras.");
         }
-    }
-    //autoexplicativo
-    public void delete(Integer id){
-        repository.deleteById(id);
+        model.setNome(model.getNome().trim());
+        model.setCidade(model.getCidade().trim());
+        model.setEstado(model.getEstado().trim().toUpperCase(Locale.ROOT));
+        model.setCepInicial(model.getCepInicial() == null ? "" : model.getCepInicial().trim());
+        model.setCepFinal(model.getCepFinal() == null ? "" : model.getCepFinal().trim());
+        boolean duplicado = repository.findAll().stream().anyMatch(outro ->
+                !outro.getId().equals(model.getId()) && outro.getNome().equalsIgnoreCase(model.getNome())
+                && outro.getCidade().equalsIgnoreCase(model.getCidade())
+                && outro.getEstado().equalsIgnoreCase(model.getEstado()));
+        if (duplicado) throw new ResponseStatusException(HttpStatus.CONFLICT, "Este bairro já está cadastrado nesta cidade.");
     }
 }

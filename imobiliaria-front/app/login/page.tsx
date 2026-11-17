@@ -4,7 +4,7 @@ import { FormEvent, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/app/lib/api";
 import { useAuth } from "@/app/context/AuthContext";
-import type { Sessao } from "@/app/types";
+import { areaDoPerfil, type Sessao, type Perfil } from "@/app/types";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -27,7 +27,7 @@ function LoginForm() {
         body: JSON.stringify({ email: email.trim(), senha }),
       });
       entrar(sessao);
-      router.replace(sessao.tipo === "ADMIN" ? "/admin" : "/cliente");
+      router.replace(areaDoPerfil(sessao.tipo));
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível entrar.");
     } finally {
@@ -35,8 +35,8 @@ function LoginForm() {
     }
   }
 
-  function preencher(tipo: "ADMIN" | "USER") {
-    setEmail(tipo === "ADMIN" ? "admin@imobiliaria.com" : "cliente@imobiliaria.com");
+  function preencher(tipo: Perfil) {
+    setEmail(tipo === "ADMIN" ? "admin@imobiliaria.com" : tipo === "CORRETOR" ? "corretor@imobiliaria.com" : "cliente@imobiliaria.com");
     setSenha("1234");
     setErro("");
   }
@@ -60,9 +60,10 @@ function LoginForm() {
         </form>
         <div className="mt-6 border-t border-stone-200 pt-5">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-stone-500">Acessos de demonstração</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <button onClick={() => preencher("USER")} className="cursor-pointer rounded-lg border border-stone-300 px-3 py-2 text-sm">Preencher cliente</button>
             <button onClick={() => preencher("ADMIN")} className="cursor-pointer rounded-lg border border-stone-300 px-3 py-2 text-sm">Preencher admin</button>
+            <button onClick={() => preencher("CORRETOR")} className="cursor-pointer rounded-lg border border-stone-300 px-3 py-2 text-sm">Preencher corretor</button>
           </div>
         </div>
       </div>

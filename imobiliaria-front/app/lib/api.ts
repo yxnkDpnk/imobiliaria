@@ -19,7 +19,7 @@ function mensagemPadrao(status: number) {
   return "O servidor não conseguiu concluir a solicitação.";
 }
 
-export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T> {
+async function requisicao(caminho: string, init: RequestInit = {}): Promise<Response> {
   const sessao = typeof window === "undefined"
     ? null
     : localStorage.getItem("imobiliaria_sessao");
@@ -50,15 +50,32 @@ export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T
         const json = JSON.parse(texto) as { erro?: string; message?: string; detail?: string };
         mensagem = json.erro ?? json.message ?? json.detail ?? mensagem;
       } catch {
-        mensagem = texto;
+        if (!texto.trim().startsWith("<")) mensagem = texto.slice(0, 300);
       }
     }
     if (resposta.status === 401 && token) {
       limparSessao();
+      sessionStorage.setItem("imobiliaria_expirada", "1");
       window.dispatchEvent(new Event("imobiliaria:sessao-expirada"));
     }
     throw new ApiError(resposta.status, mensagem);
   }
+
+  return resposta;
+}
+
+export async function baixarArquivo(caminho: string, nome: string): Promise<void> {
+  const resposta = await requisicao(caminho);
+  const url = URL.createObjectURL(await resposta.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = nome;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+export async function api<T>(caminho: string, init: RequestInit = {}): Promise<T> {
+  const resposta = await requisicao(caminho, init);
 
   if (resposta.status === 204) return undefined as T;
   const texto = await resposta.text();

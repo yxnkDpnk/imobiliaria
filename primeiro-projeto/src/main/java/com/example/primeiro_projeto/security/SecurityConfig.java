@@ -13,7 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtService jwtService,
+            com.example.primeiro_projeto.repositories.UserRepository usuarios)
             throws Exception {
 
         http
@@ -32,8 +33,10 @@ public class SecurityConfig {
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/bairros", "/tipos-imovel", "/fotos/imovel/**", "/fotos/arquivo/**").permitAll()
                 // AULA-JWT: Visitantes podem pedir informações sem ter uma conta na imobiliária.
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/imoveis/sabermais/{id}").permitAll()
-                // AULA-JWT: Alterar somente o status exige login, mas aceita ADMIN e USER.
-                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/imoveis/{id}/status").authenticated()
+                .requestMatchers("/favoritos", "/favoritos/**").hasRole("USER")
+                .requestMatchers("/ofertas", "/ofertas/**", "/contratos", "/contratos/**").authenticated()
+                .requestMatchers("/painel").hasAnyRole("ADMIN", "CORRETOR")
+                .requestMatchers(org.springframework.http.HttpMethod.PATCH, "/imoveis/{id}/status").hasAnyRole("ADMIN", "CORRETOR")
                 // AULA-JWT: A área de usuários e operações que alteram dados ficam restritas a ADMIN.
                 .requestMatchers("/users", "/users/**", "/email", "/email/**").hasRole("ADMIN")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/**").hasRole("ADMIN")
@@ -43,7 +46,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             // AULA-JWT: O filtro autentica a requisição antes das regras de autorização.
-            .addFilterBefore(new JwtFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtFilter(jwtService, usuarios), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -3,20 +3,21 @@
 # 01–20: verificações sem alteração dos registros existentes e sem envio de email.
 # 21–26: CRUD opcional, usando SOMENTE o imóvel temporário criado em 21.
 # Tokens expiram em uma hora: execute os logins novamente quando necessário.
+# Para o fluxo atual de ofertas e contratos, use aula3.http.
 @baseUrl = http://localhost:8080
 @adminToken = {{loginAdmin.response.body.$.token}}
 @userToken = {{loginUser.response.body.$.token}}
 @imovelId = 1
 @idInexistente = 2147483647
 
-### 01 — Login ADMIN → 200, token e tipo Bearer
+### 01 — Login ADMIN → 200, token e tipo ADMIN
 # @name loginAdmin
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {"login": "admin", "senha": "1234"}
 
-### 02 — Login USER → 200, token e tipo Bearer
+### 02 — Login USER → 200, token e tipo USER
 # @name loginUser
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
@@ -84,14 +85,14 @@ Content-Type: application/json
 
 {"status": "DISPONIVEL"}
 
-### 17 — Status vazio com USER → 400; não deve alterar registro
+### 17 — USER não pode alterar status, mesmo vazio → 403
 PATCH {{baseUrl}}/imoveis/{{imovelId}}/status
 Authorization: Bearer {{userToken}}
 Content-Type: application/json
 
 {"status": ""}
 
-### 18 — Status de imóvel inexistente com USER → 404
+### 18 — USER não pode alterar status de qualquer imóvel → 403
 PATCH {{baseUrl}}/imoveis/{{idInexistente}}/status
 Authorization: Bearer {{userToken}}
 Content-Type: application/json
@@ -129,20 +130,22 @@ Content-Type: application/json
   "garagem": 1,
   "areaTotal": 100,
   "areaConstruida": 70,
-  "destaque": false
+  "destaque": false,
+  "bairro": {"id": 1},
+  "tipoImovel": {"id": 1}
 }
 
 ### 22 — Consultar o imóvel temporário → 200
 GET {{criarImovelTeste.response.headers.Location}}
 
-### 23 — USER altera somente status do temporário → 200 e RESERVADO
+### 23 — USER não pode alterar status do temporário → 403
 PATCH {{criarImovelTeste.response.headers.Location}}/status
 Authorization: Bearer {{userToken}}
 Content-Type: application/json
 
 {"status": "RESERVADO"}
 
-### 24 — ADMIN altera somente status do temporário → 200 e DISPONIVEL
+### 24 — ADMIN consulta status atual pelo PATCH sem mudança → 200 e DISPONIVEL
 PATCH {{criarImovelTeste.response.headers.Location}}/status
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json

@@ -21,9 +21,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtFilter extends OncePerRequestFilter {
 
 	private final JwtService jwtService;
+	private final com.example.primeiro_projeto.repositories.UserRepository usuarios;
 
-	public JwtFilter(JwtService jwtService) {
+	public JwtFilter(JwtService jwtService, com.example.primeiro_projeto.repositories.UserRepository usuarios) {
 		this.jwtService = jwtService;
+		this.usuarios = usuarios;
 	}
 
 	@Override
@@ -64,7 +66,12 @@ public class JwtFilter extends OncePerRequestFilter {
 		}
 
 		if (login == null || login.isBlank()
-				|| !("ADMIN".equals(perfil) || "USER".equals(perfil))) {
+				|| !("ADMIN".equals(perfil) || "USER".equals(perfil) || "CORRETOR".equals(perfil))) {
+			responderNaoAutorizado(response);
+			return;
+		}
+		var usuario = usuarios.findByEmailIgnoreCase(login).orElse(null);
+		if (usuario == null || !perfil.equals(usuario.getTipo())) {
 			responderNaoAutorizado(response);
 			return;
 		}

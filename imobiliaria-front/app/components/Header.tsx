@@ -8,7 +8,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-stone-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-5 py-4">
         <Link href="/" className="text-xl font-extrabold tracking-tight text-emerald-950">
           Imobiliária
         </Link>
@@ -23,6 +23,7 @@ export default function Header() {
           {sessao?.tipo === "ADMIN" && (
             <Link href="/admin" className="rounded-lg px-3 py-2 hover:bg-stone-100">Painel</Link>
           )}
+          {sessao?.tipo === "CORRETOR" && <Link href="/corretor" className="rounded-lg px-3 py-2 hover:bg-stone-100">Negociações</Link>}
           {sessao && (
             <button onClick={sair} className="cursor-pointer rounded-lg border border-stone-300 px-3 py-2 hover:bg-stone-100">Sair</button>
           )}
