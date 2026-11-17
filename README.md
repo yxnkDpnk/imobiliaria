@@ -15,7 +15,7 @@ A assinatura registra o aceite, o nome do cliente e a data. Não utiliza certifi
 
 ## Tecnologias
 
-- Frontend: Next.js 16.4.5, React 19.3.0, TypeScript e Tailwind CSS.
+- Frontend: Next.js 16.4.6, React 19.3.0, TypeScript e Tailwind CSS.
 - Backend: Java, Spring Boot 4.1.1, Spring Data JPA, Spring Security e JJWT.
 - Banco: MySQL.
 

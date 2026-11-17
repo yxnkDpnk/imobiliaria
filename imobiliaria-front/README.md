@@ -37,4 +37,6 @@ npm run lint
 npm run build
 ```
 
+A auditoria completa ainda aponta uma falha no `picomatch`, usado pelas ferramentas de desenvolvimento e sem versão corrigida publicada. A auditoria dos pacotes de produção pode ser conferida com `npm audit --omit=dev`.
+
 As instruções do banco, backend, credenciais de demonstração e testes HTTP estão no [README principal](../README.md).
