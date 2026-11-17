@@ -2,25 +2,16 @@
 
 Trabalho final individual de **Douglas Martins Erdmann**. O frontend em React e Next.js consome a API REST Spring Boot desenvolvida na disciplina.
 
-## Estado atual — Aula 3
+## Funcionalidades
 
-- Vitrine pública com fotos, tipo, bairro, cidade, finalidade e valores.
-- Filtros combinados por bairro, finalidade e faixa de preço.
-- Ordenação por preço e paginação da lista.
-- Página de detalhes e formulário de contato com os dados do imóvel.
-- Login com usuários do MySQL, senha BCrypt e JWT nos perfis cliente, corretor e administrador.
-- Favoritos, propostas de compra e aluguel e acompanhamento das negociações.
-- Contratos com preparação pelo corretor, aprovação e envio pelo administrador e assinatura pelo cliente.
-- Contrato em PDF salvo no banco, com dados da negociação, nome e data da assinatura.
-- Painéis com totais e gráficos de imóveis por bairro e finalidade e ofertas por situação.
-- Gestão de imóveis, bairros, tipos, fotos e usuários, com confirmação antes de excluir.
-- Áreas e menus protegidos por perfil.
-- Logout, expiração de sessão e mensagens amigáveis para erros da API.
-- Layout responsivo e estados de carregamento, lista vazia e falha.
+- Consulta de imóveis com fotos, detalhes, filtros, ordenação e paginação.
+- Login JWT nos perfis cliente, corretor e administrador.
+- Favoritos e propostas de compra ou aluguel.
+- Preparação, aprovação, envio e assinatura de contratos, com PDF salvo no banco.
+- Painel com totais e gráficos.
+- Cadastro e edição de imóveis, bairros, tipos, fotos e usuários.
 
-O fluxo do checkpoint é: **cliente faz oferta → corretor aceita e prepara contrato → administrador aprova e envia → cliente assina**.
-
-A assinatura é um aceite autenticado para demonstração acadêmica, registrado no banco. Não utiliza certificado digital.
+A assinatura registra o aceite, o nome do cliente e a data. Não utiliza certificado digital.
 
 ## Tecnologias
 
@@ -90,18 +81,6 @@ Abra http://localhost:3000. O frontend encaminha `/api/*` para o Spring em `http
 
 Essas credenciais são somente para demonstração acadêmica.
 
-## Apresentação da Aula 3
-
-O passo a passo está em [APRESENTACAO_AULA3.md](APRESENTACAO_AULA3.md). As requisições para acompanhar o mesmo fluxo estão em [primeiro-projeto/aula3.http](primeiro-projeto/aula3.http).
-
-1. Cliente: abra um imóvel disponível, salve nos favoritos e envie uma oferta.
-2. Corretor: aceite a oferta e gere o contrato com as observações.
-3. Administrador: confira o PDF, aprove e envie para o cliente.
-4. Cliente: abra Meus contratos, baixe o PDF, informe o nome e confirme a assinatura.
-5. Administrador: confira os gráficos e o imóvel vendido ou alugado. O cancelamento do contrato libera o imóvel novamente.
-
-Use Sair antes de trocar de perfil. Cada área tem um botão Atualizar para buscar mudanças feitas por outro perfil.
-
 ## Regras da negociação
 
 - Apenas imóveis disponíveis recebem ofertas. O tipo precisa ter preço anunciado no imóvel.
@@ -117,25 +96,12 @@ Use Sair antes de trocar de perfil. Cada área tem um botão Atualizar para busc
 
 As decisões sobre o mesmo imóvel usam transação e bloqueio no banco para evitar duas reservas ao mesmo tempo.
 
-Os resultados de verificação desta entrega estão em [TESTES_AULA3.md](TESTES_AULA3.md).
+## Testes
 
-## Testes da Aula 2
+As requisições podem ser executadas no VS Code com a extensão REST Client:
 
-Abra [primeiro-projeto/aula2.http](primeiro-projeto/aula2.http) no VS Code com a extensão REST Client e execute as solicitações 01 a 09 na ordem. O arquivo testa:
-
-1. consulta pública de imóveis;
-2. login do administrador;
-3. conteúdo e validade do JWT;
-4. bloqueio sem token;
-5. criação autorizada pelo administrador;
-6. criação de cliente;
-7. login do cliente criado;
-8. bloqueio de operação administrativa para cliente;
-9. rejeição de token adulterado.
-
-As solicitações 10 e 11 removem os dois registros temporários.
-
-## Verificar o código
+- [aula2.http](primeiro-projeto/aula2.http): login e permissões.
+- [aula3.http](primeiro-projeto/aula3.http): ofertas, contratos e regras da negociação.
 
 Backend:
 
@@ -152,13 +118,5 @@ npx tsc --noEmit
 npm run lint
 npm run build
 ```
-
-## Problemas comuns
-
-- **JWT_SECRET ausente:** inicie o backend com `./iniciar.sh`; o script cria e reutiliza uma chave local.
-- **Falha no MySQL:** confira se o serviço, o banco e as credenciais de `application.properties` estão corretos.
-- **Vitrine sem dados:** confirme que existe um imóvel com status disponível.
-- **Frontend sem API:** mantenha o Spring na porta 8080 e o Next na porta 3000.
-- **Sessão expirada:** faça login novamente; o token vale uma hora.
 
 Arquivos com credenciais, uploads, dependências e builds estão excluídos pelo `.gitignore`.

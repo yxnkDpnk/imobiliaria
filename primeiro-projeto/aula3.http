@@ -1,13 +1,10 @@
-# AULA 3 — fluxo completo
-# Ctrl + clique abre o site no navegador:
+# Aula 3 — testes de ofertas e contratos
 # Vitrine: http://localhost:3000
 # Login: http://localhost:3000/login
 # Cliente: http://localhost:3000/cliente
 # Corretor: http://localhost:3000/corretor
 # Administrador: http://localhost:3000/admin
-# Roteiro pela interface: APRESENTACAO_AULA3.md, na raiz do repositório.
-# Execute na ordem. Este arquivo cria um imóvel de demonstração próprio;
-# o imóvel original não é alterado. Os itens 409/403 são bloqueios esperados.
+# Execute na ordem. As requisições criam dados de teste no banco.
 
 @baseUrl = http://localhost:8080
 @admin = {{loginAdmin.response.body.$.token}}
@@ -46,15 +43,15 @@ GET {{baseUrl}}/bairros
 # @name listarTipos
 GET {{baseUrl}}/tipos-imovel
 
-### 06 — Admin cria imóvel para esta apresentação: 201 (Location)
+### 06 — Cadastrar imóvel de teste: 201 (Location)
 # @name criarImovel
 POST {{baseUrl}}/imoveis
 Authorization: Bearer {{admin}}
 Content-Type: application/json
 
 {
-  "titulo":"Imóvel de demonstração Aula 3 {{$timestamp}}",
-  "descricao":"Imóvel utilizado para apresentar o fluxo de oferta e contrato.",
+  "titulo":"Imóvel de teste {{$timestamp}}",
+  "descricao":"Cadastro para teste de oferta e contrato.",
   "precoVenda":420000,
   "precoAluguel":2200,
   "finalidade":"VENDA E ALUGUEL",
@@ -85,7 +82,7 @@ POST {{baseUrl}}/ofertas
 Authorization: Bearer {{cliente}}
 Content-Type: application/json
 
-{"imovelId":{{imovelId}},"tipo":"VENDA","valorProposto":400000,"mensagem":"Proposta de compra para a apresentação da Aula 3."}
+{"imovelId":{{imovelId}},"tipo":"VENDA","valorProposto":400000,"mensagem":"Tenho interesse em comprar o imóvel por este valor."}
 
 ### 11 — Oferta pendente duplicada: 409 com mensagem de negócio
 POST {{baseUrl}}/ofertas

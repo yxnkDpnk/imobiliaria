@@ -39,4 +39,3 @@ npm run build
 
 As instruções do banco, backend, credenciais de demonstração e testes HTTP estão no [README principal](../README.md).
 
-O roteiro do checkpoint está em [APRESENTACAO_AULA3.md](../APRESENTACAO_AULA3.md).
